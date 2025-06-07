@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "sqlite:///proj2.db"
+DATABASE_URL = "sqlite:///proj2.db" 
 engine = create_engine(DATABASE_URL, echo=True)
 
 Base = declarative_base()
@@ -18,6 +18,12 @@ class Inst(Base):
 
 class Regstore(Base):
     __tablename__ = 'Registers'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    regname = Column(String)
+    binary = Column(String)
+
+class Floatstore(Base):
+    __tablename__ = 'Floatstore'
     id = Column(Integer, primary_key=True, autoincrement=True)
     regname = Column(String)
     binary = Column(String)
@@ -46,6 +52,14 @@ if __name__ == '__main__':
         ('sra', 'Shift Right Arithmetic', 'R', '0110011', '101', '0100000'),
         ('slt', 'Shift less Than', 'R', '0110011', '010', '0000000'),
         ('sltu', 'Set less Than(U)', 'R', '0110011', '011', '0000000'),
+        ('mul', 'MUL', 'R', '0110011', '000', '0000001'),
+        ('mulh', 'MUL High', 'R', '0110011', '001', '0000001'),
+        ('mulsu', 'MUL High (S) (U)', 'R', '0110011', '010', '0000001'),
+        ('mulu', 'MUL High (U)', 'R', '0110011', '011', '0000001'),
+        ('div', 'DIV', 'R', '0110011', '100', '0000001'),
+        ('divu', 'DIV (U)', 'R', '0110011', '101', '0000001'),
+        ('rem', 'Remainder', 'R', '0110011', '110', '0000001'),
+        ('remu', 'Remainder (U)', 'R', '0110011', '111', '0000001'),
         ('addi', 'ADD Immediate', 'I', '0010011', '000', None),
         ('xori', 'XOR Immediate', 'I', '0010011', '100', None),
         ('ori', 'OR Immediate', 'I', '0010011', '110', None),
@@ -82,7 +96,33 @@ if __name__ == '__main__':
         ('csrrsi','Atomic Set CSR I', 'I', '1110011', '110', None),
         ('csrrci','Atomic Clear CSR I', 'I', '1110011', '111', None),
         ('ecall','Environment Call', 'I', '1110011', '000', None),
-        ('ebreak','Environment Break', 'I', '1110011', '001', None)
+        ('ebreak','Environment Break', 'I', '1110011', '001', None),
+        ('fadd.s','Floating Point Add', 'R', '1010011', '000', '0000000'),
+        ('fsub.s','Floating Point Subtract', 'R', '1010011', '000', '0000100'),
+        ('fmul.s','Floating Point Multiply', 'R', '1010011', '000', '0001000'),
+        ('fdiv.s','Floating Point Divide', 'R', '1010011', '000', '0001100'),
+        ('fsqrt.s','Floating Point Square Root', 'R', '1010011', '000', '0101100'),
+        ('fmin.s','Floating Point Min', 'R', '1010011', '000', '0010100'),
+        ('fmax.s','Floating Point Max', 'R', '1010011', '001', '0010100'),
+        ('feq.s','Floating Point Equal', 'R', '1010011', '010', '1010000'),
+        ('flt.s','Floating Point Less Than', 'R', '1010011', '001', '1010000'),
+        ('feq.s','Floating Point Equal', 'R', '1010011', '000', '1010000'),
+        ('fclass.s','Floating Point Classify', 'R', '1010011', '100', '1110000'),
+        ('fmv.x.w','Floating Point Move', 'R', '1010011', '000', '1110000'),
+        ('fmv.w.x','Floating Point Move', 'R', '1010011', '000', '1111000'),
+        ('fcvt.s.w','Floating Point Convert', 'R', '1010011', '000', '1101000'),
+        ('fcvt.s.wu','Floating Point Convert', 'R', '1010011', '001', '1101000'),
+        ('fcvt.w.s','Floating Point Convert', 'R', '1010011', '000', '1100000'),
+        ('fcvt.wu.s','Floating Point Convert', 'R', '1010011', '001', '1100000'),
+        ('fsgnj.s','Floating Point Sign', 'R', '1010011', '000', '0010000'),
+        ('fsgnjn.s','Floating Point Sign', 'R', '1010011', '001', '0010000'),
+        ('fsgnjx.s','Floating Point Sign', 'R', '1010011', '010', '0010000'),
+        ('flw','Floating Point Load Word', 'I', '0000111', '010', None),
+        ('fsw','Floating Point Store Word', 'S', '0100111', '010', None),
+        ('fmadd.s','Floating Point Multiply-Add', 'R4', '1000011', '000', None),
+        ('fmsub.s','Floating Point Multiply-Subtract', 'R4', '1000111', '000', None),
+        ('fnmsub.s','Floating Point Multiply-Subtract', 'R4', '1001011', '000', None),
+        ('fnmadd.s','Floating Point Multiply-Add', 'R4', '1001111', '000', None)
         ]
 
     # Add the instructions to the session
@@ -163,7 +203,44 @@ if __name__ == '__main__':
         ('x29', '11101'),
         ('x30', '11110'),
         ('x31', '11111')
+        
     ]
+
+    float_registers = [
+        ('f0', '00000'),
+        ('f1', '00001'),
+        ('f2', '00010'),
+        ('f3', '00011'),
+        ('f4', '00100'),
+        ('f5', '00101'),   
+        ('f6', '00110'),
+        ('f7', '00111'),
+        ('f8', '01000'),
+        ('f9', '01001'),
+        ('f10', '01010'),
+        ('f11', '01011'),
+        ('f12', '01100'),
+        ('f13', '01101'),
+        ('f14', '01110'),
+        ('f15', '01111'),
+        ('f16', '10000'),
+        ('f17', '10001'),
+        ('f18', '10010'),
+        ('f19', '10011'),
+        ('f20', '10100'),
+        ('f21', '10101'),
+        ('f22', '10110'),
+        ('f23', '10111'),
+        ('f24', '11000'),
+        ('f25', '11001'),
+        ('f26', '11010'),   
+        ('f27', '11011'),
+        ('f28', '11100'),
+        ('f29', '11101'),
+        ('f30', '11110'),
+        ('f31', '11111')
+    ]
+        
 
     # Add the registers to the session
     for register in registers:
@@ -171,6 +248,12 @@ if __name__ == '__main__':
         session.add(Regstore(
             regname=str(register[0]),
             binary=str(register[1])
+        ))
+    
+    for floatregister in float_registers:
+        session.add(Floatstore(
+            regname=str(floatregister[0]),
+            binary=str(floatregister[1])
         ))
 
     hex1 =[

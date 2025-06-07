@@ -1,13 +1,13 @@
-from Init import Regstore, Inst, Hexc
+from Init import Regstore, Inst, Hexc, Floatstore
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String
 import re
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 import os
 
 app = Flask(__name__)
 
-DATABASE_URL = "sqlite:///proj2.db"
+DATABASE_URL = "sqlite:///proj2.db" 
 engine = create_engine(DATABASE_URL, echo=True)
 
 Session = sessionmaker(bind=engine)
@@ -29,11 +29,11 @@ def binary_to_hex(binary):
             binary = '0' + binary
         hex = session.query(Hexc).filter(Hexc.binaryval == binary).first()
         hexval = hex.hexval + hexval
-
+    
     return '0x' + hexval
 
 def hex_to_binary(hexval):
-    hexval = hexval.replace('0x','').strip()
+    hexval = hexval.replace('0x','')
     binary = ''
     while len(hexval) > 0:
         hex = session.query(Hexc).filter(Hexc.hexval == hexval[-1].upper()).first()
@@ -62,31 +62,40 @@ def calc_decimal(binary):
     return str(decimal)
 
 def assembly_to_machine_Rtype(opcode, funct3, funct7, rd, rs1, rs2):
-    rdi=session.query(Regstore).filter(Regstore.regname == rd).first()
-    print(rdi.binary,end='\n')
-    rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
-    print(rs1i.binary,end='\n')
-    rs2i=session.query(Regstore).filter(Regstore.regname == rs2).first()
-    print(rs2i.binary,end='\n')
+    if opcode == '1010011':
+        rdi=session.query(Regstore).filter(Floatstore.regname == rd).first()
+        rs1i=session.query(Regstore).filter(Floatstore.regname == rs1).first()
+        rs2i=session.query(Regstore).filter(Floatstore.regname == rs2).first()
+    else:
+        rdi=session.query(Regstore).filter(Regstore.regname == rd).first()
+        rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
+        rs2i=session.query(Regstore).filter(Regstore.regname == rs2).first()
     if rdi is None or rs1i is None or rs2i is None:
         return 'Invalid Register'
     return binary_to_hex(funct7 + rs2i.binary + rs1i.binary + funct3 + rdi.binary + opcode)
 
 def assembly_to_machine_Itype(opcode, funct3, rd, rs1, imm):
     print(opcode,funct3,rd,rs1,imm)
-    if opcode == '1100111' or opcode =='0000011':
+    if opcode == '1100111' or opcode =='0000011' or opcode == '0000111' :
         rs1, imm = imm, rs1
-    rdi=session.query(Regstore).filter(Regstore.regname == rd).first()
-    print(rdi.binary)
-    rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
-    print(rs1i.binary)
+    if opcode == '0000111':
+        rdi=session.query(Regstore).filter(Floatstore.regname == rd).first()
+        rs1i=session.query(Regstore).filter(Floatstore.regname == rs1).first()
+    else:
+        rdi=session.query(Regstore).filter(Regstore.regname == rd).first()
+        rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
+    
     if rdi is None or rs1i is None:
         return 'Invalid Register'
     return binary_to_hex(imm_to_binary(imm) + rs1i.binary + funct3 + rdi.binary + opcode)
 
 def assembly_to_machine_Stype(opcode, funct3, rs2, imm, rs1):
-    rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
-    rs2i=session.query(Regstore).filter(Regstore.regname == rs2).first()
+    if opcode == '0100111':
+        rs1i=session.query(Regstore).filter(Floatstore.regname == rs1).first()
+        rs2i=session.query(Regstore).filter(Floatstore.regname == rs2).first()
+    else:
+        rs1i=session.query(Regstore).filter(Regstore.regname == rs1).first()
+        rs2i=session.query(Regstore).filter(Regstore.regname == rs2).first()
     if rs1i is None or rs2i is None:
         return 'Invalid Register'
     imm = imm_to_binary(imm,12)
@@ -157,10 +166,10 @@ def assembly_to_machine_CSR(opcode, funct3, rd, csr, rs1):
     # Get register binary values
     rdi = session.query(Regstore).filter(Regstore.regname == rd).first()
     rs1i = session.query(Regstore).filter(Regstore.regname == rs1).first()
-
+    
     if rdi is None or rs1i is None:
         return 'Invalid Register'
-
+    
     return binary_to_hex(csr_bin + rs1i.binary + funct3 + rdi.binary + opcode)
 
 def assembly_to_machine_CSRI(opcode, funct3, rd, csr, imm):
@@ -170,24 +179,33 @@ def assembly_to_machine_CSRI(opcode, funct3, rd, csr, imm):
         imm_bin = bin(int(imm, 16))[2:].zfill(5)
     else:
         imm_bin = bin(int(imm))[2:].zfill(5)
-
+    
     # Get register binary value
     rdi = session.query(Regstore).filter(Regstore.regname == rd).first()
-
+    
     if rdi is None:
         return 'Invalid Register'
-
+    
     # Convert csr to binary
     if '0x' in csr.lower():
         csr_bin = bin(int(csr, 16))[2:].zfill(12)
     else:
         csr_bin = bin(int(csr))[2:].zfill(12)
-
+    
     return binary_to_hex(csr_bin + imm_bin + funct3 + rdi.binary + opcode)
 
 def assembly_to_machine_Sys(opcode, funct3):
     # For system instructions (ecall, ebreak), all fields are zero except opcode and funct3
     return binary_to_hex('0' * 20 + funct3 + '00000' + opcode)
+
+def assembly_to_machine_R4type(opcode, funct3,funct2, rs1, rs2, rs3, rd):
+    rdi = session.query(Regstore).filter(Floatstore.regname == rd).first()
+    rs1i = session.query(Regstore).filter(Floatstore.regname == rs1).first()
+    rs2i = session.query(Regstore).filter(Floatstore.regname == rs2).first()
+    rs3i = session.query(Regstore).filter(Floatstore.regname == rs3).first()
+    if rdi is None or rs1i is None or rs2i is None:
+        return 'Invalid Register'
+    return binary_to_hex(funct2 + rs3i.binary + rs2i.binary + rs1i.binary + funct3 + rdi.binary + opcode)
 
 def machine_to_assembly_Rtype(opcode, funct3, funct7, rs1, rs2, rd):
     rdi=session.query(Regstore).filter(Regstore.binary == rd).first()
@@ -208,12 +226,12 @@ def machine_to_assembly_Itype(opcode, funct3, rs1, imm, rd):
     instance = session.query(Inst).filter(Inst.opcode == opcode, Inst.funct3 == funct3).first()
     if instance is None:
         return 'Invalid Instruction'
-
+    
     # Convert immediate to decimal
     imm_decimal = int(imm, 2)
     if imm[0] == '1':  # If negative (sign bit is 1)
         imm_decimal = imm_decimal - (1 << len(imm))  # Convert to negative using two's complement
-
+    
     if opcode == '1100111' or opcode == '0000011':
         return instance.instruction + ' ' + rdi.regname + ', ' + str(imm_decimal) + '(' + rs1i.regname + ')'
     else:
@@ -289,31 +307,31 @@ def machine_to_assembly_Fence(opcode, funct3, imm):
         return instance.instruction.upper() + ' ' + pred + ', ' + succ
 
 def machine_to_assembly_CSR(opcode, funct3, csr, rs1, rd):
-
+    
     rdi = session.query(Regstore).filter(Regstore.binary == rd).first()
     rs1i = session.query(Regstore).filter(Regstore.binary == rs1).first()
-
+    
     if rdi is None or rs1i is None:
         return 'Invalid Register'
-
+    
     instance = session.query(Inst).filter(Inst.opcode == opcode, Inst.funct3 == funct3).first()
     if instance is None:
         return 'Invalid Instruction'
-
+    
     return instance.instruction + ' ' + rdi.regname + ', ' + hex(int(csr, 2)) + ', ' + rs1i.regname
 
 def machine_to_assembly_CSRI(opcode, funct3, csr, imm, rd):
     rdi = session.query(Regstore).filter(Regstore.binary == rd).first()
 
     print(rd,csr,imm)
-
+    
     if rdi is None:
         return 'Invalid Register'
-
+    
     instance = session.query(Inst).filter(Inst.opcode == opcode, Inst.funct3 == funct3).first()
     if instance is None:
         return 'Invalid Instruction'
-
+    
     return instance.instruction + ' ' + rdi.regname + ', ' + hex(int(csr, 2)) + ', ' + str(int(imm, 2))
 
 def machine_to_assembly_Sys(opcode, funct3):
@@ -326,27 +344,31 @@ def machine_to_assembly_Sys(opcode, funct3):
 def index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('static', path)
+
 @app.route('/convert', methods=['POST'])
 def convert():
     try:
         data = request.get_json()
         if not data:
             return jsonify({'result': 'Invalid request: No JSON data provided'})
-
+            
         choice = data.get('choice')
-        instruction = data.get('instruction').strip().lower()
-
+        instruction = data.get('instruction')
+        
         if not choice or not instruction:
             return jsonify({'result': 'Invalid request: Missing choice or instruction'})
-
+        
         if choice == 1:
             instruction = re.split(r'[ ,()]+', instruction)
-
+                
             inst = session.query(Inst).filter(Inst.instruction == instruction[0].lower()).first()
-
+            
             if inst is None:
                 return jsonify({'result': 'Invalid instruction'})
-
+            
             result = []
             if inst.fmt == 'R':
                 result.append("Given instruction is of R type.\n")
@@ -357,9 +379,14 @@ def convert():
                 result.append(f"Funct3: {inst.funct3}")
                 result.append(f"Funct7: {inst.funct7}")
                 try:
-                    rd_bin = session.query(Regstore).filter(Regstore.regname == instruction[1]).first().binary
-                    rs1_bin = session.query(Regstore).filter(Regstore.regname == instruction[2]).first().binary
-                    rs2_bin = session.query(Regstore).filter(Regstore.regname == instruction[3]).first().binary
+                    if inst.opcode == '1010011':
+                        rd_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[1]).first().binary
+                        rs1_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[2]).first().binary
+                        rs2_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[3]).first().binary
+                    else:
+                        rd_bin = session.query(Regstore).filter(Regstore.regname == instruction[1]).first().binary
+                        rs1_bin = session.query(Regstore).filter(Regstore.regname == instruction[2]).first().binary
+                        rs2_bin = session.query(Regstore).filter(Regstore.regname == instruction[3]).first().binary
                     result.append(f"Rd: {instruction[1]} (binary: {rd_bin})")
                     result.append(f"Rs1: {instruction[2]} (binary: {rs1_bin})")
                     result.append(f"Rs2: {instruction[3]} (binary: {rs2_bin})")
@@ -426,6 +453,13 @@ def convert():
                         result.append(f"Rd: {instruction[1]} (binary: {rd_bin})")
                         result.append(f"Rs1: {instruction[3]} (binary: {rs1_bin})")
                         result.append(f"Imm: {instruction[2]}")
+                    elif(inst.instruction == 'flw' or inst.instruction == 'fsw'):
+                        rd_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[1]).first().binary
+                        rs1_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[3]).first().binary
+                        imm_bin = imm_to_binary(instruction[2])
+                        result.append(f"Rd: {instruction[1]} (binary: {rd_bin})")
+                        result.append(f"Rs1: {instruction[3]} (binary: {rs1_bin})")
+                        result.append(f"Imm: {instruction[2]}")
                     else:
                         rd_bin = session.query(Regstore).filter(Regstore.regname == instruction[1]).first().binary
                         rs1_bin = session.query(Regstore).filter(Regstore.regname == instruction[2]).first().binary
@@ -441,8 +475,12 @@ def convert():
                 result.append("\nField Values:\n")
                 result.append(f"Opcode: {inst.opcode}")
                 result.append(f"Funct3: {inst.funct3}")
-                rs1_bin = session.query(Regstore).filter(Regstore.regname == instruction[3]).first().binary
-                rs2_bin = session.query(Regstore).filter(Regstore.regname == instruction[1]).first().binary
+                if inst.opcode == '0100111':
+                    rs1_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[3]).first().binary
+                    rs2_bin = session.query(Floatstore).filter(Floatstore.regname == instruction[1]).first().binary
+                else:
+                    rs1_bin = session.query(Regstore).filter(Regstore.regname == instruction[3]).first().binary
+                    rs2_bin = session.query(Regstore).filter(Regstore.regname == instruction[1]).first().binary
                 result.append(f"Rs1: {instruction[3]} (binary: {rs1_bin})")
                 result.append(f"Rs2: {instruction[1]} (binary: {rs2_bin})")
                 result.append(f"Imm: {instruction[2]}")
@@ -480,25 +518,34 @@ def convert():
                 result.append(f"Rd: {instruction[1]} (binary: {rd_bin})")
                 result.append(f"Imm: {instruction[2]}")
                 result.append(f"\nMachine code for provided assembly code: {assembly_to_machine_UJtype(inst.opcode, instruction[1], instruction[2])}")
-
+            
+            elif inst.fmt == 'R4':
+                if '.s' in inst.instruction:
+                    funct2 = '00'
+                elif '.d' in inst.instruction:
+                    funct2 = '01'
+                result.append("Given instruction is of R4 type.\n")
+                result.append("R4-type format: | funct2 | rs3 | rs2 | rs1 | funct3 | rd | opcode |\n")
+                result.append("                | 7 bits | 5 bits | 5 bits | 5 bits | 3 bits | 5 bits | 7 bits |\n")
+                result.append(f"\nMachine code for provided assembly code: {assembly_to_machine_R4type(inst.opcode, inst.funct3, inst.funct2, instruction[2], instruction[3], instruction[4], instruction[1])}")
             return jsonify({'result': '\n'.join(result)})
-
+        
         elif choice == 2:
             try:
                 binary = hex_to_binary(instruction)
                 result = [f"Binary value: {binary}"]
                 opcode = binary[-7:]
                 inst = session.query(Inst).filter(Inst.opcode == opcode).first()
-
+                
                 if inst is None:
                     return jsonify({'result': 'Invalid Instruction'})
-
+                
                 if inst.fmt == 'R':
                     result.append("Given machine code is of R type.\n")
                     result.append("R-type format: | funct7 | rs2 | rs1 | funct3 | rd | opcode |\n")
                     result.append("              | 7 bits | 5 bits | 5 bits | 3 bits | 5 bits | 7 bits |\n")
                     result.append("\nField Values:\n")
-                    result.append(f"Opcode: {opcode} (Type: {inst.fmt})")
+                    result.append(f"Opcode: {opcode} ({inst.fmt})")
                     funct3 = binary[-15:-12]
                     result.append(f"Funct3: {funct3}")
                     funct7 = binary[-32:-25]
@@ -515,7 +562,7 @@ def convert():
                     funct3 = binary[-15:-12]
                     rs1 = binary[-20:-15]
                     imm = binary[:-20]
-
+                    
                     if inst.instruction == 'fence' or inst.instruction == 'fence.i':
                         result.append("Given machine code is a fence instruction.\n")
                         result.append("Fence format: | imm[11:0] | rs1 | funct3 | rd | opcode |\n")
@@ -621,14 +668,14 @@ def convert():
                     result.append(f"Rd: {rd}")
                     result.append(f"Imm: {imm}")
                     result.append(f"\nAssembly code for provided machine code: {machine_to_assembly_UJtype(inst.opcode, rd, imm)}")
-
+                
                 return jsonify({'result': '\n'.join(result)})
-
+            
             except Exception as e:
                 return jsonify({'result': f'Error processing machine code: {str(e)}'})
-
+        
         return jsonify({'result': 'Invalid choice'})
-
+    
     except Exception as e:
         return jsonify({'result': f'An error occurred: {str(e)}'})
 

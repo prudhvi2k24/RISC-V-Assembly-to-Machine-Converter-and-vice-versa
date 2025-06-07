@@ -4,18 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assembly to Machine Code Converter</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #7C3AED;
-            --primary-hover: #6D28D9;
-            --background-color: #0F172A;
-            --card-background: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border-color: #334155;
-            --success-color: #10B981;
-            --error-color: #EF4444;
+            /* M3 Color System */
+            --md-sys-color-primary: #2C5282;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #E6F0F8;
+            --md-sys-color-on-primary-container: #1A365D;
+            
+            --md-sys-color-secondary: #4A90E2;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-secondary-container: #E8F1FA;
+            --md-sys-color-on-secondary-container: #2C5282;
+            
+            --md-sys-color-tertiary: #63B3ED;
+            --md-sys-color-on-tertiary: #FFFFFF;
+            --md-sys-color-tertiary-container: #EBF8FF;
+            --md-sys-color-on-tertiary-container: #2C5282;
+            
+            --md-sys-color-surface: #F0F7FF;
+            --md-sys-color-on-surface: #1A365D;
+            --md-sys-color-surface-variant: #E6F0F8;
+            --md-sys-color-on-surface-variant: #2C5282;
+            
+            --md-sys-color-outline: #BEE3F8;
+            --md-sys-color-outline-variant: #90CDF4;
+            
+            --md-sys-color-background: #F0F7FF;
+            --md-sys-color-on-background: #1A365D;
+            
+            /* Elevation */
+            --md-sys-elevation-level1: 0 1px 3px 1px rgba(44, 82, 130, 0.12), 0 1px 2px 0 rgba(44, 82, 130, 0.24);
+            --md-sys-elevation-level2: 0 2px 6px 2px rgba(44, 82, 130, 0.12), 0 1px 2px 0 rgba(44, 82, 130, 0.24);
+            --md-sys-elevation-level3: 0 4px 8px 3px rgba(44, 82, 130, 0.12), 0 1px 3px 0 rgba(44, 82, 130, 0.24);
+            --md-sys-elevation-level4: 0 6px 10px 4px rgba(44, 82, 130, 0.12), 0 2px 3px 0 rgba(44, 82, 130, 0.24);
+            --md-sys-elevation-level5: 0 8px 12px 6px rgba(44, 82, 130, 0.12), 0 4px 4px 0 rgba(44, 82, 130, 0.24);
+            
+            /* Shape */
+            --md-sys-shape-corner-small: 8px;
+            --md-sys-shape-corner-medium: 12px;
+            --md-sys-shape-corner-large: 16px;
         }
 
         * {
@@ -25,11 +54,29 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
             line-height: 1.6;
             min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+        }
+
+        .instruction-note, 
+        .instruction-format, 
+        .instruction-name,
+        .instruction-details,
+        pre,
+        code,
+        input,
+        select,
+        button,
+        .pdf-download {
+            font-family: 'Fira Code', monospace;
         }
 
         .container {
@@ -47,16 +94,15 @@
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-color), #A78BFA);
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 1rem;
         }
 
         .instruction-note {
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             font-size: 1rem;
-            font-family: 'JetBrains Mono', monospace;
         }
 
         .main-content {
@@ -67,16 +113,17 @@
         }
 
         .card {
-            background-color: var(--card-background);
-            border-radius: 1rem;
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-large);
             padding: 2rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--md-sys-color-outline);
             transition: all 0.3s ease;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--md-sys-elevation-level2);
         }
 
         .form-group {
@@ -87,75 +134,76 @@
             display: block;
             font-size: 0.875rem;
             font-weight: 500;
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             margin-bottom: 0.5rem;
-            font-family: 'JetBrains Mono', monospace;
         }
 
         select, input {
             width: 100%;
             padding: 0.75rem 1rem;
-            background-color: var(--background-color);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
+            background-color: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
             font-size: 1rem;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--md-sys-color-on-surface);
             transition: all 0.2s ease;
         }
 
         select:focus, input:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-surface-tint);
         }
 
         button {
             width: 100%;
             padding: 1rem 1.5rem;
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
             border: none;
-            border-radius: 0.5rem;
+            border-radius: var(--md-sys-shape-corner-medium);
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         button:hover {
-            background-color: var(--primary-hover);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
             transform: translateY(-1px);
+            box-shadow: var(--md-sys-elevation-level2);
         }
 
         .output {
             margin-top: 2rem;
             padding: 1.5rem;
-            background-color: var(--background-color);
-            border-radius: 0.75rem;
-            border: 1px solid var(--border-color);
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            border: 1px solid var(--md-sys-color-outline);
             min-height: 200px;
         }
 
         .output h2 {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--md-sys-color-on-surface);
             margin-bottom: 1rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         .output pre {
-            background-color: var(--card-background);
+            background-color: var(--md-sys-color-surface-variant);
             padding: 1rem;
-            border-radius: 0.5rem;
+            border-radius: var(--md-sys-shape-corner-small);
             overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 0.875rem;
             line-height: 1.5;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            color: var(--md-sys-color-on-surface);
+            border: 1px solid var(--md-sys-color-outline-variant);
         }
 
         .thinking {
@@ -163,40 +211,31 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             font-style: italic;
             padding: 1rem;
-            background-color: var(--card-background);
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .thinking::after {
-            content: '';
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid var(--primary-color);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            font-family: 'Fira Code', monospace;
         }
 
         .instruction-examples {
-            background-color: var(--card-background);
-            border-radius: 1rem;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-large);
             padding: 2rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--md-sys-color-outline);
             position: sticky;
             top: 2rem;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .instruction-examples h3 {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--md-sys-color-on-surface);
             margin-bottom: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         .instruction-examples ul {
@@ -207,10 +246,10 @@
 
         .instruction-examples li {
             font-size: 0.875rem;
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-color);
-            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            font-family: 'Fira Code', monospace;
         }
 
         .instruction-examples li:last-child {
@@ -222,31 +261,35 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
             border: none;
-            border-radius: 0.5rem;
+            border-radius: var(--md-sys-shape-corner-medium);
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             width: 100%;
             justify-content: center;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .pdf-download:hover {
-            background-color: var(--primary-hover);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
             transform: translateY(-1px);
+            box-shadow: var(--md-sys-elevation-level2);
         }
 
         .expandable-section {
             margin-top: 3rem;
-            background-color: var(--card-background);
-            border-radius: 1rem;
-            border: 1px solid var(--border-color);
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-large);
+            border: 1px solid var(--md-sys-color-outline-variant);
             overflow: hidden;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .expandable-header {
@@ -255,50 +298,58 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: var(--card-background);
-            border-bottom: 1px solid var(--border-color);
+            background-color: var(--md-sys-color-surface-variant);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
             transition: background-color 0.2s ease;
         }
 
         .expandable-header:hover {
-            background-color: var(--background-color);
+            background-color: var(--md-sys-color-surface);
         }
 
         .expandable-header h2 {
             margin: 0;
             font-size: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
+            color: var(--md-sys-color-on-surface);
         }
 
         .expandable-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease;
+            transition: all 0.5s ease;
+            opacity: 0;
+            visibility: hidden;
         }
 
         .expandable-content.expanded {
-            max-height: 2000px;
+            max-height: none;
+            opacity: 1;
+            visibility: visible;
+            overflow-y: auto;
+            padding: 1rem;
         }
 
         .instruction-types {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            padding: 2rem;
+            padding: 1rem;
         }
 
         .instruction-group {
-            background-color: var(--background-color);
-            border-radius: 1rem;
+            background-color: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-large);
             padding: 1.5rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .instruction-group h2 {
             font-size: 1.25rem;
-            color: var(--primary-color);
+            color: var(--md-sys-color-primary);
             margin-bottom: 1rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         .instruction-item {
@@ -307,44 +358,45 @@
 
         .instruction-name {
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--md-sys-color-on-surface);
             margin-bottom: 0.25rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         .instruction-format {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 0.875rem;
-            color: var(--text-secondary);
-            background-color: var(--card-background);
+            color: var(--md-sys-color-on-surface-variant);
+            background-color: var(--md-sys-color-surface-variant);
             padding: 0.5rem;
-            border-radius: 0.25rem;
+            border-radius: var(--md-sys-shape-corner-small);
             margin: 0.5rem 0;
         }
 
         .instruction-details {
             font-size: 0.875rem;
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
         }
 
         .background {
-            background-color: var(--card-background);
-            border-radius: 1rem;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-large);
             padding: 2rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--md-sys-color-outline-variant);
             margin-top: 3rem;
+            box-shadow: var(--md-sys-elevation-level1);
         }
 
         .background h2 {
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--md-sys-color-on-surface);
             margin-bottom: 1rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         .background p {
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             margin-bottom: 1rem;
             line-height: 1.6;
         }
@@ -356,7 +408,7 @@
         }
 
         .background li {
-            color: var(--text-secondary);
+            color: var(--md-sys-color-on-surface-variant);
             padding: 0.5rem 0;
             padding-left: 1.5rem;
             position: relative;
@@ -364,7 +416,7 @@
 
         .background li::before {
             content: "→";
-            color: var(--primary-color);
+            color: var(--md-sys-color-primary);
             position: absolute;
             left: 0;
         }
@@ -386,8 +438,15 @@
                 font-size: 2rem;
             }
 
+            .expandable-content.expanded {
+                max-height: none;
+                padding: 0.5rem;
+            }
+            
             .instruction-types {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 0.5rem;
             }
         }
 
@@ -402,7 +461,7 @@
     <div class="container">
         <div class="header">
             <h1>Assembly to Machine Code Converter</h1>
-            <p class="instruction-note">Implemented RV32I and RV32M Instructions of RISC-V</p>
+            <p class="instruction-note">Implemented RV32I,RV32M and RV32F Instructions of RISC-V</p>
         </div>
 
         <div class="main-content">
@@ -432,11 +491,19 @@
                 <h3>Example Instructions:</h3>
                 <ul>
                     <li>R-type: add x1, x2, x3</li>
+                    <li>R-type: sub x1, x2, x3</li>
                     <li>I-type: addi x1, x2, 10</li>
+                    <li>I-type: lw x1, 8(x2)</li>
                     <li>S-type: sw x1, 8(x2)</li>
                     <li>SB-type: beq x1, x2, label</li>
+                    <li>SB-type: bne x1, x2, label</li>
                     <li>U-type: lui x1, 0x12345</li>
                     <li>UJ-type: jal x1, label</li>
+                    <li>I-type: jalr x1, x2, 0</li>
+                    <li>F-type: fadd.s f1, f2, f3</li>
+                    <li>F-type: fmul.s f1, f2, f3</li>
+                    <li>F-type: flw f1, 8(x2)</li>
+                    <li>F-type: fsw f1, 8(x2)</li>
                 </ul>
                 <a href="https://dejazzer.com/coen2710/lectures/RISC-V-Reference-Data-Green-Card.pdf" target="_blank" class="pdf-download">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
@@ -476,6 +543,26 @@
                                 <div class="instruction-format">sub rd, rs1, rs2</div>
                                 <div class="instruction-details">Subtract registers</div>
                             </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SLT</div>
+                                <div class="instruction-format">slt rd, rs1, rs2</div>
+                                <div class="instruction-details">Set if less than (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SLTI</div>
+                                <div class="instruction-format">slti rd, rs1, imm</div>
+                                <div class="instruction-details">Set if less than immediate (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SLTU</div>
+                                <div class="instruction-format">sltu rd, rs1, rs2</div>
+                                <div class="instruction-details">Set if less than (unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SLTIU</div>
+                                <div class="instruction-format">sltiu rd, rs1, imm</div>
+                                <div class="instruction-details">Set if less than immediate (unsigned)</div>
+                            </li>
                         </ul>
                     </div>
 
@@ -494,14 +581,34 @@
                                 <div class="instruction-details">Multiply registers (upper 32 bits, signed)</div>
                             </li>
                             <li class="instruction-item">
+                                <div class="instruction-name">MULHSU</div>
+                                <div class="instruction-format">mulhsu rd, rs1, rs2</div>
+                                <div class="instruction-details">Multiply registers (upper 32 bits, signed-unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">MULHU</div>
+                                <div class="instruction-format">mulhu rd, rs1, rs2</div>
+                                <div class="instruction-details">Multiply registers (upper 32 bits, unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
                                 <div class="instruction-name">DIV</div>
                                 <div class="instruction-format">div rd, rs1, rs2</div>
                                 <div class="instruction-details">Divide registers (signed)</div>
                             </li>
                             <li class="instruction-item">
+                                <div class="instruction-name">DIVU</div>
+                                <div class="instruction-format">divu rd, rs1, rs2</div>
+                                <div class="instruction-details">Divide registers (unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
                                 <div class="instruction-name">REM</div>
                                 <div class="instruction-format">rem rd, rs1, rs2</div>
                                 <div class="instruction-details">Remainder (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">REMU</div>
+                                <div class="instruction-format">remu rd, rs1, rs2</div>
+                                <div class="instruction-details">Remainder (unsigned)</div>
                             </li>
                         </ul>
                     </div>
@@ -511,9 +618,39 @@
                         <h2>Load/Store Instructions</h2>
                         <ul class="instruction-list">
                             <li class="instruction-item">
+                                <div class="instruction-name">LB</div>
+                                <div class="instruction-format">lb rd, offset(rs1)</div>
+                                <div class="instruction-details">Load byte (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">LBU</div>
+                                <div class="instruction-format">lbu rd, offset(rs1)</div>
+                                <div class="instruction-details">Load byte (unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">LH</div>
+                                <div class="instruction-format">lh rd, offset(rs1)</div>
+                                <div class="instruction-details">Load halfword (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">LHU</div>
+                                <div class="instruction-format">lhu rd, offset(rs1)</div>
+                                <div class="instruction-details">Load halfword (unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
                                 <div class="instruction-name">LW</div>
                                 <div class="instruction-format">lw rd, offset(rs1)</div>
                                 <div class="instruction-details">Load word</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SB</div>
+                                <div class="instruction-format">sb rs2, offset(rs1)</div>
+                                <div class="instruction-details">Store byte</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SH</div>
+                                <div class="instruction-format">sh rs2, offset(rs1)</div>
+                                <div class="instruction-details">Store halfword</div>
                             </li>
                             <li class="instruction-item">
                                 <div class="instruction-name">SW</div>
@@ -540,7 +677,22 @@
                             <li class="instruction-item">
                                 <div class="instruction-name">BLT</div>
                                 <div class="instruction-format">blt rs1, rs2, offset</div>
-                                <div class="instruction-details">Branch if less than</div>
+                                <div class="instruction-details">Branch if less than (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">BLTU</div>
+                                <div class="instruction-format">bltu rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if less than (unsigned)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">BGE</div>
+                                <div class="instruction-format">bge rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if greater than or equal (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">BGEU</div>
+                                <div class="instruction-format">bgeu rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if greater than or equal (unsigned)</div>
                             </li>
                         </ul>
                     </div>
@@ -575,6 +727,158 @@
                                 <div class="instruction-name">EBREAK</div>
                                 <div class="instruction-format">ebreak</div>
                                 <div class="instruction-details">Environment break</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">CSRRW</div>
+                                <div class="instruction-format">csrrw rd, csr, rs1</div>
+                                <div class="instruction-details">Atomic read/write CSR</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">CSRRS</div>
+                                <div class="instruction-format">csrrs rd, csr, rs1</div>
+                                <div class="instruction-details">Atomic read and set bits in CSR</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">CSRRC</div>
+                                <div class="instruction-format">csrrc rd, csr, rs1</div>
+                                <div class="instruction-details">Atomic read and clear bits in CSR</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Floating Point Instructions -->
+                    <div class="instruction-group">
+                        <h2>RV32F Floating Point Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">FADD.S</div>
+                                <div class="instruction-format">fadd.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point add (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSUB.S</div>
+                                <div class="instruction-format">fsub.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point subtract (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMUL.S</div>
+                                <div class="instruction-format">fmul.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point multiply (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FDIV.S</div>
+                                <div class="instruction-format">fdiv.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point divide (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSQRT.S</div>
+                                <div class="instruction-format">fsqrt.s fd, fs1</div>
+                                <div class="instruction-details">Floating point square root (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMIN.S</div>
+                                <div class="instruction-format">fmin.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point minimum (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMAX.S</div>
+                                <div class="instruction-format">fmax.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point maximum (single precision)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FEQ.S</div>
+                                <div class="instruction-format">feq.s rd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point equal comparison</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FLT.S</div>
+                                <div class="instruction-format">flt.s rd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point less than comparison</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FLE.S</div>
+                                <div class="instruction-format">fle.s rd, fs1, fs2</div>
+                                <div class="instruction-details">Floating point less than or equal comparison</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FCLASS.S</div>
+                                <div class="instruction-format">fclass.s rd, fs1</div>
+                                <div class="instruction-details">Floating point classify</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMV.X.W</div>
+                                <div class="instruction-format">fmv.x.w rd, fs1</div>
+                                <div class="instruction-details">Move floating point to integer register</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMV.W.X</div>
+                                <div class="instruction-format">fmv.w.x fd, rs1</div>
+                                <div class="instruction-details">Move integer to floating point register</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FCVT.S.W</div>
+                                <div class="instruction-format">fcvt.s.w fd, rs1</div>
+                                <div class="instruction-details">Convert signed integer to floating point</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FCVT.S.WU</div>
+                                <div class="instruction-format">fcvt.s.wu fd, rs1</div>
+                                <div class="instruction-details">Convert unsigned integer to floating point</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FCVT.W.S</div>
+                                <div class="instruction-format">fcvt.w.s rd, fs1</div>
+                                <div class="instruction-details">Convert floating point to signed integer</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FCVT.WU.S</div>
+                                <div class="instruction-format">fcvt.wu.s rd, fs1</div>
+                                <div class="instruction-details">Convert floating point to unsigned integer</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSGNJ.S</div>
+                                <div class="instruction-format">fsgnj.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Copy sign bit</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSGNJN.S</div>
+                                <div class="instruction-format">fsgnjn.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Copy inverted sign bit</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSGNJX.S</div>
+                                <div class="instruction-format">fsgnjx.s fd, fs1, fs2</div>
+                                <div class="instruction-details">Copy XORed sign bit</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FLW</div>
+                                <div class="instruction-format">flw fd, offset(rs1)</div>
+                                <div class="instruction-details">Load floating point word</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FSW</div>
+                                <div class="instruction-format">fsw fs2, offset(rs1)</div>
+                                <div class="instruction-details">Store floating point word</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMADD.S</div>
+                                <div class="instruction-format">fmadd.s fd, fs1, fs2, fs3</div>
+                                <div class="instruction-details">Floating point multiply-add</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FMSUB.S</div>
+                                <div class="instruction-format">fmsub.s fd, fs1, fs2, fs3</div>
+                                <div class="instruction-details">Floating point multiply-subtract</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FNMSUB.S</div>
+                                <div class="instruction-format">fnmsub.s fd, fs1, fs2, fs3</div>
+                                <div class="instruction-details">Floating point negated multiply-subtract</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">FNMADD.S</div>
+                                <div class="instruction-format">fnmadd.s fd, fs1, fs2, fs3</div>
+                                <div class="instruction-details">Floating point negated multiply-add</div>
                             </li>
                         </ul>
                     </div>
