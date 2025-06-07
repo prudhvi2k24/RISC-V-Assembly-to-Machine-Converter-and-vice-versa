@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assembly to Machine Code Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7C3AED;
+            --primary-hover: #6D28D9;
+            --background-color: #0F172A;
+            --card-background: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border-color: #334155;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .instruction-note {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .output {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: var(--background-color);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            min-height: 200px;
+        }
+
+        .output h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .output pre {
+            background-color: var(--card-background);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 1rem;
+            background-color: var(--card-background);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .thinking::after {
+            content: '';
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        .instruction-examples {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .instruction-examples h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .instruction-examples ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction-examples li {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .instruction-examples li:last-child {
+            border-bottom: none;
+        }
+
+        .pdf-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .pdf-download:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .expandable-section {
+            margin-top: 3rem;
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .expandable-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+
+        .expandable-header:hover {
+            background-color: var(--background-color);
+        }
+
+        .expandable-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .expandable-content.expanded {
+            max-height: 2000px;
+        }
+
+        .instruction-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .instruction-group {
+            background-color: var(--background-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .instruction-group h2 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .instruction-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .instruction-format {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background-color: var(--card-background);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin: 0.5rem 0;
+        }
+
+        .instruction-details {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .background {
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        .background h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .background p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .background ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 1rem;
+        }
+
+        .background li {
+            color: var(--text-secondary);
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .background li::before {
+            content: "→";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .instruction-examples {
+                position: static;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            .instruction-types {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Assembly to Machine Code Converter</h1>
+            <p class="instruction-note">Implemented RV32I and RV32M Instructions of RISC-V</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <div class="form-group">
+                    <label for="choice">Select Operation:</label>
+                    <select id="choice">
+                        <option value="1">Assembly to Machine Code</option>
+                        <option value="2">Machine Code to Assembly</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="instruction">Enter Instruction:</label>
+                    <input type="text" id="instruction" placeholder="e.g., add x1, x2, x3">
+                </div>
+
+                <button onclick="convert()">Convert</button>
+
+                <div class="output">
+                    <h2>Output:</h2>
+                    <pre id="result">Result will appear here...</pre>
+                </div>
+            </div>
+
+            <div class="instruction-examples">
+                <h3>Example Instructions:</h3>
+                <ul>
+                    <li>R-type: add x1, x2, x3</li>
+                    <li>I-type: addi x1, x2, 10</li>
+                    <li>S-type: sw x1, 8(x2)</li>
+                    <li>SB-type: beq x1, x2, label</li>
+                    <li>U-type: lui x1, 0x12345</li>
+                    <li>UJ-type: jal x1, label</li>
+                </ul>
+                <a href="https://dejazzer.com/coen2710/lectures/RISC-V-Reference-Data-Green-Card.pdf" target="_blank" class="pdf-download">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625z" />
+                        <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
+                    </svg>
+                    RISC-V Reference Card
+                </a>
+            </div>
+        </div>
+
+        <div class="expandable-section">
+            <div class="expandable-header" onclick="toggleInstructions()">
+                <h2>RISC-V Instructions Reference</h2>
+                <svg class="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                    <path d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+            <div class="expandable-content">
+                <div class="instruction-types">
+                    <!-- RV32I Base Integer Instructions -->
+                    <div class="instruction-group">
+                        <h2>RV32I Arithmetic Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">ADD</div>
+                                <div class="instruction-format">add rd, rs1, rs2</div>
+                                <div class="instruction-details">Add registers</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">ADDI</div>
+                                <div class="instruction-format">addi rd, rs1, imm</div>
+                                <div class="instruction-details">Add immediate</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SUB</div>
+                                <div class="instruction-format">sub rd, rs1, rs2</div>
+                                <div class="instruction-details">Subtract registers</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- RV32M Multiply/Divide Instructions -->
+                    <div class="instruction-group">
+                        <h2>RV32M Multiply/Divide Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">MUL</div>
+                                <div class="instruction-format">mul rd, rs1, rs2</div>
+                                <div class="instruction-details">Multiply registers (lower 32 bits)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">MULH</div>
+                                <div class="instruction-format">mulh rd, rs1, rs2</div>
+                                <div class="instruction-details">Multiply registers (upper 32 bits, signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">DIV</div>
+                                <div class="instruction-format">div rd, rs1, rs2</div>
+                                <div class="instruction-details">Divide registers (signed)</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">REM</div>
+                                <div class="instruction-format">rem rd, rs1, rs2</div>
+                                <div class="instruction-details">Remainder (signed)</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Load/Store Instructions -->
+                    <div class="instruction-group">
+                        <h2>Load/Store Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">LW</div>
+                                <div class="instruction-format">lw rd, offset(rs1)</div>
+                                <div class="instruction-details">Load word</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">SW</div>
+                                <div class="instruction-format">sw rs2, offset(rs1)</div>
+                                <div class="instruction-details">Store word</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Branch Instructions -->
+                    <div class="instruction-group">
+                        <h2>Branch Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">BEQ</div>
+                                <div class="instruction-format">beq rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if equal</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">BNE</div>
+                                <div class="instruction-format">bne rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if not equal</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">BLT</div>
+                                <div class="instruction-format">blt rs1, rs2, offset</div>
+                                <div class="instruction-details">Branch if less than</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Jump Instructions -->
+                    <div class="instruction-group">
+                        <h2>Jump Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">JAL</div>
+                                <div class="instruction-format">jal rd, offset</div>
+                                <div class="instruction-details">Jump and link</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">JALR</div>
+                                <div class="instruction-format">jalr rd, rs1, offset</div>
+                                <div class="instruction-details">Jump and link register</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- System Instructions -->
+                    <div class="instruction-group">
+                        <h2>System Instructions</h2>
+                        <ul class="instruction-list">
+                            <li class="instruction-item">
+                                <div class="instruction-name">ECALL</div>
+                                <div class="instruction-format">ecall</div>
+                                <div class="instruction-details">Environment call</div>
+                            </li>
+                            <li class="instruction-item">
+                                <div class="instruction-name">EBREAK</div>
+                                <div class="instruction-format">ebreak</div>
+                                <div class="instruction-details">Environment break</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="background">
+            <h2>About RISC-V</h2>
+            <p>RISC-V is an open-source instruction set architecture (ISA) that is revolutionizing the world of computer architecture. It provides a foundation for building efficient, customizable processors for various applications.</p>
+            
+            <h2>About This Tool</h2>
+            <p>This converter helps you understand and work with RISC-V assembly language by:</p>
+            <ul>
+                <li>Converting RISC-V assembly instructions to their corresponding machine code</li>
+                <li>Translating machine code back to human-readable assembly instructions</li>
+                <li>Supporting various instruction formats (R-type, I-type, S-type, etc.)</li>
+                <li>Providing detailed breakdowns of instruction fields and their binary representations</li>
+            </ul>
+            
+            <p>Whether you're learning computer architecture, debugging assembly code, or developing RISC-V software, this tool can help you understand the relationship between assembly language and machine code.</p>
+        </div>
+    </div>
+
+    <script>
+        function convert() {
+            const choice = document.getElementById('choice').value;
+            const instruction = document.getElementById('instruction').value;
+            const result = document.getElementById('result');
+            
+            // Show thinking animation
+            result.innerHTML = '<div class="thinking">Converting...</div>';
+
+            fetch('/convert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    choice: parseInt(choice),
+                    instruction: instruction
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove thinking animation and show result
+                result.textContent = data.result;
+            })
+            .catch(error => {
+                result.textContent = 'Error: ' + error.message;
+            });
+        }
+
+        function toggleInstructions() {
+            const content = document.querySelector('.expandable-content');
+            const icon = document.querySelector('.toggle-icon');
+            content.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>
